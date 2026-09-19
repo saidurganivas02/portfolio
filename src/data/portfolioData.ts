@@ -13,6 +13,7 @@ export const personalInfo = {
   twitter: "https://twitter.com",
   heroHeadline: "Engineering sleek, resilient full-stack web apps with modern craft.",
   heroHeadlineHighlight: "full-stack web apps",
+  heroHeadlineFontSize: "medium" as 'small' | 'medium' | 'large' | 'xlarge',
   heroBio: "I am Kommireddy Sai Durga Nivas, a Full Stack Developer with production internship experience across MERN stack architectures, Python workflows, and RESTful API integrations.",
   terminalFileName: "sai-durga-nivas.config.ts",
   terminalStack: ["React", "Node.js", "MongoDB", "Python", "MySQL"],

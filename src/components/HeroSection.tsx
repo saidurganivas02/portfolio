@@ -20,6 +20,21 @@ interface HeroSectionProps {
   onOpenContact: () => void;
 }
 
+const getHeadlineFontSizeClass = (size?: string) => {
+  switch (size) {
+    case 'small':
+      return 'text-2xl sm:text-3xl lg:text-4xl';
+    case 'medium':
+      return 'text-3xl sm:text-4xl lg:text-5xl';
+    case 'large':
+      return 'text-3.5xl sm:text-4.5xl lg:text-5.5xl';
+    case 'xlarge':
+      return 'text-4xl sm:text-5xl lg:text-6xl';
+    default:
+      return 'text-3xl sm:text-4xl lg:text-5xl';
+  }
+};
+
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenContact }) => {
   const { config } = useTheme();
   const { heroPhoto, profile, isAuthenticated, openAdminModal } = usePortfolio();
@@ -90,7 +105,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenContact }) => {
             </div>
 
             {/* Display Typography */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12] mb-6">
+            <h1 className={`${getHeadlineFontSizeClass((profile as any).heroHeadlineFontSize)} font-extrabold tracking-tight text-white leading-[1.15] mb-6 transition-all duration-300`}>
               {(() => {
                 const headline = profile.heroHeadline || "Engineering sleek, resilient full-stack web apps with modern craft.";
                 const highlight = profile.heroHeadlineHighlight || "full-stack web apps";

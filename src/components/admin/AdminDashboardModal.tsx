@@ -306,6 +306,9 @@ export const AdminDashboardModal: React.FC = () => {
   const [heroLocation, setHeroLocation] = useState(profile.location || 'Andhra Pradesh, India');
   const [heroHeadline, setHeroHeadline] = useState(profile.heroHeadline || 'Engineering sleek, resilient full-stack web apps with modern craft.');
   const [heroHeadlineHighlight, setHeroHeadlineHighlight] = useState(profile.heroHeadlineHighlight || 'full-stack web apps');
+  const [heroHeadlineFontSize, setHeroHeadlineFontSize] = useState<'small' | 'medium' | 'large' | 'xlarge'>(
+    (profile as any).heroHeadlineFontSize || 'medium'
+  );
   const [heroBio, setHeroBio] = useState(profile.heroBio || 'I am Kommireddy Sai Durga Nivas, a Full Stack Developer with production internship experience across MERN stack architectures, Python workflows, and RESTful API integrations.');
   const [profileGithub, setProfileGithub] = useState(profile.github || 'https://github.com/saidurganivas02?tab=repositories');
   const [profileLinkedin, setProfileLinkedin] = useState(profile.linkedin || 'https://www.linkedin.com/in/sai-durga-nivas-kommireddi-61bb0233b');
@@ -332,6 +335,7 @@ export const AdminDashboardModal: React.FC = () => {
       setHeroLocation(profile.location || 'Andhra Pradesh, India');
       setHeroHeadline(profile.heroHeadline || 'Engineering sleek, resilient full-stack web apps with modern craft.');
       setHeroHeadlineHighlight(profile.heroHeadlineHighlight || 'full-stack web apps');
+      setHeroHeadlineFontSize(((profile as any).heroHeadlineFontSize as any) || 'medium');
       setHeroBio(profile.heroBio || '');
       setTerminalFileName(profile.terminalFileName || 'sai-durga-nivas.config.ts');
       setTerminalStack(
@@ -373,6 +377,7 @@ export const AdminDashboardModal: React.FC = () => {
       location: heroLocation.trim(),
       heroHeadline: heroHeadline.trim(),
       heroHeadlineHighlight: heroHeadlineHighlight.trim(),
+      heroHeadlineFontSize,
       heroBio: heroBio.trim(),
       terminalFileName: terminalFileName.trim() || 'sai-durga-nivas.config.ts',
       terminalStack: stackArray.length > 0 ? stackArray : ['React', 'Node.js', 'MongoDB', 'Python', 'MySQL'],
@@ -1261,6 +1266,95 @@ export const AdminDashboardModal: React.FC = () => {
                       <span className="text-[11px] font-mono text-zinc-500 block mt-1">
                         Main bold headline displayed at top of the portfolio.
                       </span>
+                    </div>
+
+                    {/* Headline Font Size Selector */}
+                    <div className="bg-[#121212] p-4 rounded-xl border border-white/10 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="block text-xs font-mono text-zinc-200 font-semibold">
+                            Headline Font Size (Home Page Display)
+                          </label>
+                          <span className="text-[11px] text-zinc-500 font-mono">
+                            Choose how big or compact the headline appears on the Home page
+                          </span>
+                        </div>
+                        <span
+                          className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider border"
+                          style={{
+                            color: config.hex,
+                            borderColor: `${config.hex}50`,
+                            backgroundColor: `${config.hex}15`,
+                          }}
+                        >
+                          {heroHeadlineFontSize}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {[
+                          { id: 'small', label: 'Small', desc: 'Compact & subtle', sizeNote: '24px - 36px' },
+                          { id: 'medium', label: 'Medium', desc: 'Balanced (Recommended)', sizeNote: '28px - 48px' },
+                          { id: 'large', label: 'Large', desc: 'Prominent & bold', sizeNote: '32px - 54px' },
+                          { id: 'xlarge', label: 'Extra Large', desc: 'Original big impact', sizeNote: '36px - 60px' },
+                        ].map((opt) => {
+                          const isSelected = heroHeadlineFontSize === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setHeroHeadlineFontSize(opt.id as any)}
+                              className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                isSelected
+                                  ? 'text-white shadow-lg'
+                                  : 'border-white/10 bg-[#161616] text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                              }`}
+                              style={
+                                isSelected
+                                  ? {
+                                      borderColor: config.hex,
+                                      backgroundColor: `${config.hex}22`,
+                                      boxShadow: `0 0 16px ${config.glowRgba}`,
+                                    }
+                                  : {}
+                              }
+                            >
+                              <div className="flex items-center justify-between w-full mb-1">
+                                <span className={`text-xs font-mono font-bold ${isSelected ? 'text-white' : 'text-zinc-300'}`}>
+                                  {opt.label}
+                                </span>
+                                {isSelected && (
+                                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: config.hex }} />
+                                )}
+                              </div>
+                              <span className="text-[10px] text-zinc-400 font-sans leading-tight block mb-0.5">{opt.desc}</span>
+                              <span className="text-[9px] font-mono text-zinc-500 block">{opt.sizeNote}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Live preview */}
+                      <div className="pt-2.5 border-t border-white/5">
+                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block mb-1.5">
+                          Live Headline Preview ({heroHeadlineFontSize}):
+                        </span>
+                        <div className="p-3.5 rounded-xl bg-[#0a0a0a] border border-white/10 overflow-hidden">
+                          <p
+                            className={`font-extrabold tracking-tight text-white leading-snug transition-all duration-300 ${
+                              heroHeadlineFontSize === 'small'
+                                ? 'text-base sm:text-lg lg:text-xl'
+                                : heroHeadlineFontSize === 'medium'
+                                ? 'text-lg sm:text-xl lg:text-2xl'
+                                : heroHeadlineFontSize === 'large'
+                                ? 'text-xl sm:text-2xl lg:text-3xl'
+                                : 'text-2xl sm:text-3xl lg:text-4xl'
+                            }`}
+                          >
+                            {heroHeadline || 'Engineering sleek, resilient full-stack web apps with modern craft.'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
