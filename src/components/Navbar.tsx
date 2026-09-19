@@ -17,14 +17,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
     let scrollRaf: number | null = null;
     const handleScroll = () => {
       if (scrollRaf) return;
@@ -49,8 +43,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
       if (scrollRaf) cancelAnimationFrame(scrollRaf);
     };
   }, []);
@@ -111,16 +103,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
             })}
           </nav>
 
-          {/* Right Actions: Live Connection Status, Accent Switcher, Log In / Admin, Call & Contact Button */}
+          {/* Right Actions: Accent Switcher, Log In / Admin, Call & Contact Button */}
           <div className="hidden md:flex items-center gap-2.5">
-            {/* Live System & Network Connection Health Pill */}
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#141414] border border-white/10 text-[11px] font-mono shadow-xs">
-              <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-              <span className={isOnline ? 'text-emerald-400 font-semibold' : 'text-amber-400'}>
-                {isOnline ? 'Connected • Stable' : 'Offline Cache'}
-              </span>
-            </div>
-
             {/* Interactive Dynamic Accent Switcher */}
             <AccentSwitcher />
 
