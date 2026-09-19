@@ -8,13 +8,16 @@ import {
 } from '../data/portfolioData';
 import defaultFallbackPhoto from '../assets/images/default_profile.jpg';
 
-type AdminTab = 'projects' | 'certificates' | 'experience' | 'profile' | 'photo' | 'messages';
+type AdminTab = 'projects' | 'certificates' | 'experience' | 'profile' | 'photo' | 'messages' | 'security';
 
 interface PortfolioContextType {
-  // Authentication
+  // Authentication & Credentials
   isAuthenticated: boolean;
   login: (u: string, p: string) => boolean;
   logout: () => void;
+  adminUsername: string;
+  updateCredentials: (currentPassword: string, newUsername: string, newPassword: string) => { success: boolean; message: string };
+  resetCredentials: () => void;
 
   // Modals
   isAuthModalOpen: boolean;
@@ -78,6 +81,28 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return localStorage.getItem('nivas_auth_session') === 'true';
     }
     return false;
+  });
+
+  const DEFAULT_ADMIN_CREDENTIALS = {
+    username: 'nivas',
+    password: 'nivas123',
+  };
+
+  const [adminCredentials, setAdminCredentials] = useState<{ username: string; password: string }>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nivas_admin_credentials');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed.username === 'string' && typeof parsed.password === 'string') {
+            return parsed;
+          }
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return DEFAULT_ADMIN_CREDENTIALS;
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -162,7 +187,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Hero Photo State
   const [heroPhoto, setHeroPhoto] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('user_original_photo_data');
+      // Clear any legacy test photo from prior sessions
+      localStorage.removeItem('user_original_photo_data');
+      const saved = localStorage.getItem('user_original_photo_data_v2');
       if (saved) return saved;
     }
     return defaultFallbackPhoto;
@@ -254,9 +281,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('nivas_received_messages');
   };
 
-  // Auth methods
+  // Auth & Credentials methods
   const login = (username: string, pass: string): boolean => {
-    if (username.trim() === 'nivas' && pass === 'nivas123') {
+    if (
+      username.trim().toLowerCase() === adminCredentials.username.trim().toLowerCase() &&
+      pass === adminCredentials.password
+    ) {
       setIsAuthenticated(true);
       localStorage.setItem('nivas_auth_session', 'true');
       setIsAuthModalOpen(false);
@@ -264,6 +294,50 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return true;
     }
     return false;
+  };
+
+  const updateCredentials = (
+    currentPassword: string,
+    newUsername: string,
+    newPassword: string
+  ): { success: boolean; message: string } => {
+    if (currentPassword !== adminCredentials.password) {
+      return {
+        success: false,
+        message: 'Current password is incorrect. Please verify your current password to make changes.',
+      };
+    }
+
+    const trimmedUser = newUsername.trim();
+    if (!trimmedUser) {
+      return { success: false, message: 'Username cannot be blank.' };
+    }
+
+    if (!newPassword || newPassword.length < 4) {
+      return { success: false, message: 'New password must be at least 4 characters long.' };
+    }
+
+    const updated = {
+      username: trimmedUser,
+      password: newPassword,
+    };
+
+    setAdminCredentials(updated);
+    try {
+      localStorage.setItem('nivas_admin_credentials', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Storage error saving admin credentials:', e);
+    }
+
+    return {
+      success: true,
+      message: `Admin credentials updated successfully! New username: "${trimmedUser}".`,
+    };
+  };
+
+  const resetCredentials = () => {
+    setAdminCredentials(DEFAULT_ADMIN_CREDENTIALS);
+    localStorage.removeItem('nivas_admin_credentials');
   };
 
   const logout = () => {
@@ -348,7 +422,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateHeroPhoto = (dataUrl: string) => {
     setHeroPhoto(dataUrl);
     try {
-      localStorage.setItem('user_original_photo_data', dataUrl);
+      localStorage.setItem('user_original_photo_data_v2', dataUrl);
     } catch (e) {
       console.warn('Storage quota limit:', e);
     }
@@ -356,6 +430,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const resetHeroPhoto = () => {
     setHeroPhoto(defaultFallbackPhoto);
+    localStorage.removeItem('user_original_photo_data_v2');
     localStorage.removeItem('user_original_photo_data');
   };
 
@@ -369,7 +444,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('nivas_portfolio_certifications');
     localStorage.removeItem('nivas_portfolio_experiences');
     localStorage.removeItem('nivas_portfolio_profile');
+    localStorage.removeItem('user_original_photo_data_v2');
     localStorage.removeItem('user_original_photo_data');
+    resetCredentials();
   };
 
   return (
@@ -378,6 +455,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isAuthenticated,
         login,
         logout,
+        adminUsername: adminCredentials.username,
+        updateCredentials,
+        resetCredentials,
         isAuthModalOpen,
         openAuthModal,
         closeAuthModal,

@@ -27,6 +27,13 @@ import {
   Terminal,
   MessageSquare,
   Loader2,
+  ShieldCheck,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -63,6 +70,9 @@ export const AdminDashboardModal: React.FC = () => {
     messages,
     deleteMessage,
     clearAllMessages,
+    adminUsername,
+    updateCredentials,
+    resetCredentials,
   } = usePortfolio();
 
   const { config } = useTheme();
@@ -417,6 +427,43 @@ export const AdminDashboardModal: React.FC = () => {
     setTimeout(() => setPhotoSavedNotice(false), 2600);
   };
 
+  // -------------------------------------------------------------
+  // Security: Change Username & Password
+  // -------------------------------------------------------------
+  const [secCurrentPassword, setSecCurrentPassword] = useState('');
+  const [secNewUsername, setSecNewUsername] = useState('');
+  const [secNewPassword, setSecNewPassword] = useState('');
+  const [secConfirmPassword, setSecConfirmPassword] = useState('');
+  const [secShowCurrentPass, setSecShowCurrentPass] = useState(false);
+  const [secShowNewPass, setSecShowNewPass] = useState(false);
+  const [secResult, setSecResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleSecuritySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecResult(null);
+    if (secNewPassword !== secConfirmPassword) {
+      setSecResult({ success: false, message: 'New passwords do not match. Please re-enter them.' });
+      return;
+    }
+    const result = updateCredentials(secCurrentPassword, secNewUsername || adminUsername, secNewPassword);
+    setSecResult(result);
+    if (result.success) {
+      setSecCurrentPassword('');
+      setSecNewUsername('');
+      setSecNewPassword('');
+      setSecConfirmPassword('');
+    }
+  };
+
+  const handleResetCredentials = () => {
+    resetCredentials();
+    setSecCurrentPassword('');
+    setSecNewUsername('');
+    setSecNewPassword('');
+    setSecConfirmPassword('');
+    setSecResult({ success: true, message: 'Credentials reset to default: username "nivas", password "nivas123".' });
+  };
+
   if (!isAdminModalOpen) return null;
 
   const tabs = [
@@ -426,6 +473,7 @@ export const AdminDashboardModal: React.FC = () => {
     { id: 'profile', label: '4. Hero & Profile', icon: User },
     { id: 'photo', label: '5. Photo Option', icon: Camera },
     { id: 'messages', label: `6. Inquiries (${messages.length})`, icon: MessageSquare },
+    { id: 'security', label: '7. Security', icon: ShieldCheck },
   ] as const;
 
   return (
@@ -1681,12 +1729,191 @@ export const AdminDashboardModal: React.FC = () => {
               </div>
             )}
 
+            {/* ========================================================================= */}
+            {/* TAB 7: SECURITY — Change Username & Password                             */}
+            {/* ========================================================================= */}
+            {activeAdminTab === 'security' && (
+              <div className="space-y-6">
+                <div className="pb-3 border-b border-white/10">
+                  <h4 className="text-base font-bold text-white flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" style={{ color: config.hex }} />
+                    <span>Admin Login Credentials</span>
+                  </h4>
+                  <p className="text-xs font-mono text-zinc-400 mt-1">
+                    Change your admin username and password. Credentials are stored locally in your browser.
+                  </p>
+                </div>
+
+                {/* Current Credentials Info Card */}
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${config.hex}20`, color: config.hex }}
+                  >
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-mono text-zinc-400">Current admin username</div>
+                    <div className="text-sm font-bold text-white font-mono">{adminUsername}</div>
+                  </div>
+                </div>
+
+                {/* Result Banner */}
+                {secResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3.5 rounded-xl flex items-start gap-2.5 text-xs font-mono ${
+                      secResult.success
+                        ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                        : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
+                    }`}
+                  >
+                    {secResult.success
+                      ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
+                      : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />}
+                    <span>{secResult.message}</span>
+                  </motion.div>
+                )}
+
+                {/* Change Credentials Form */}
+                <form onSubmit={handleSecuritySubmit} className="space-y-5">
+                  {/* Current Password */}
+                  <div>
+                    <label className="block text-xs font-mono text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-zinc-400" />
+                      Current Password <span className="text-rose-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={secShowCurrentPass ? 'text' : 'password'}
+                        value={secCurrentPassword}
+                        onChange={(e) => setSecCurrentPassword(e.target.value)}
+                        placeholder="Enter your current password"
+                        required
+                        className="w-full px-4 py-3 rounded-xl bg-[#171717] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/30 text-sm font-mono pr-11 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSecShowCurrentPass(!secShowCurrentPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        {secShowCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-[11px] font-mono text-zinc-500">New Credentials</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+
+                  {/* New Username */}
+                  <div>
+                    <label className="block text-xs font-mono text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-zinc-400" />
+                      New Username
+                      <span className="text-zinc-500 text-[10px] ml-1">(leave blank to keep current: "{adminUsername}")</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={secNewUsername}
+                      onChange={(e) => setSecNewUsername(e.target.value)}
+                      placeholder={`Keep as "${adminUsername}" or type a new username`}
+                      className="w-full px-4 py-3 rounded-xl bg-[#171717] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/30 text-sm font-mono transition-colors"
+                    />
+                  </div>
+
+                  {/* New Password */}
+                  <div>
+                    <label className="block text-xs font-mono text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-zinc-400" />
+                      New Password <span className="text-rose-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={secShowNewPass ? 'text' : 'password'}
+                        value={secNewPassword}
+                        onChange={(e) => setSecNewPassword(e.target.value)}
+                        placeholder="Minimum 4 characters"
+                        required
+                        minLength={4}
+                        className="w-full px-4 py-3 rounded-xl bg-[#171717] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/30 text-sm font-mono pr-11 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSecShowNewPass(!secShowNewPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition-colors"
+                      >
+                        {secShowNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block text-xs font-mono text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-zinc-400" />
+                      Confirm New Password <span className="text-rose-400">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={secConfirmPassword}
+                      onChange={(e) => setSecConfirmPassword(e.target.value)}
+                      placeholder="Re-enter new password"
+                      required
+                      className={`w-full px-4 py-3 rounded-xl bg-[#171717] border text-white placeholder:text-zinc-600 focus:outline-none text-sm font-mono transition-colors ${
+                        secConfirmPassword && secNewPassword !== secConfirmPassword
+                          ? 'border-rose-500/50 focus:border-rose-400'
+                          : 'border-white/10 focus:border-white/30'
+                      }`}
+                    />
+                    {secConfirmPassword && secNewPassword !== secConfirmPassword && (
+                      <p className="text-[11px] text-rose-400 font-mono mt-1">Passwords do not match</p>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={!secCurrentPassword || !secNewPassword || secNewPassword !== secConfirmPassword}
+                      className="flex-1 py-3 px-5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: config.hex,
+                        boxShadow: `0 4px 20px ${config.glowRgba}`,
+                      }}
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Update Credentials</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetCredentials}
+                      className="py-3 px-4 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 text-xs font-mono text-zinc-300 hover:text-rose-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      title="Reset to default credentials"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset to Default</span>
+                    </button>
+                  </div>
+                </form>
+
+                {/* Info box */}
+                <div className="p-3.5 rounded-xl bg-white/5 border border-white/5 text-[11px] font-mono text-zinc-400 leading-relaxed">
+                  🔒 <strong className="text-zinc-300">Note:</strong> Credentials are stored in your browser's localStorage. If you change devices or clear browser data, use <strong className="text-zinc-200">Reset to Default</strong> to restore the original login (username: <span className="text-zinc-200">nivas</span>, password: <span className="text-zinc-200">nivas123</span>).
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Modal Footer */}
           <div className="p-4 sm:p-5 border-t border-white/10 bg-[#0e0e0e] flex items-center justify-between text-xs font-mono">
             <span className="text-zinc-500">
-              User: <span className="text-zinc-300">nivas</span> • Local Storage Sync Active
+              User: <span className="text-zinc-300">{adminUsername}</span> • Local Storage Sync Active
             </span>
             <button
               onClick={closeAdminModal}
