@@ -69,10 +69,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
   return (
     <header
       id="main-navigation"
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/10 py-3 shadow-2xl'
-          : 'bg-transparent py-5'
+          : 'bg-[#0a0a0a]/75 backdrop-blur-md py-3.5 border-b border-white/5 shadow-md'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -81,29 +81,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
           {/* Logo / Personal Brand */}
           <a
             href="#hero"
-            className="flex items-center gap-3 group focus:outline-none"
+            className="flex items-center gap-3 group focus:outline-none shrink-0"
             aria-label="Sai Durga Nivas - Full Stack Developer"
           >
             <div
-              className="w-10 h-10 rounded-2xl bg-[#141414] border border-white/10 flex items-center justify-center font-mono font-bold text-sm text-white group-hover:scale-105 transition-all shadow-md group-hover:border-white/30"
+              className="w-10 h-10 rounded-2xl bg-[#141414] border border-white/10 flex items-center justify-center font-mono font-bold text-sm text-white group-hover:scale-105 transition-all shadow-md group-hover:border-white/30 shrink-0"
               style={{
                 boxShadow: `0 0 20px ${config.glowRgba}`,
               }}
             >
               <span style={{ color: config.hex }}>NV</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sm text-white tracking-tight group-hover:text-zinc-200 transition-colors">
+            <div className="flex flex-col justify-center whitespace-nowrap">
+              <span className="font-bold text-sm text-white tracking-tight group-hover:text-zinc-200 transition-colors whitespace-nowrap leading-snug">
                 {info.name.split(' ')[0]} {info.name.split(' ')[1] || ''}
               </span>
-              <span className="text-[11px] font-mono text-zinc-400">
+              <span className="text-[11px] font-mono text-zinc-400 whitespace-nowrap leading-snug">
                 {info.role}
               </span>
             </div>
           </a>
 
           {/* Desktop Navigation Links Pill */}
-          <nav className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#141414]/90 border border-white/10 backdrop-blur-md shadow-inner">
+          <nav className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#141414]/90 border border-white/10 backdrop-blur-md shadow-inner shrink-0">
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
