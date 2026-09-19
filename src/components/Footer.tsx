@@ -3,7 +3,6 @@ import { ArrowUp, Github, Linkedin, Mail, Phone, Terminal } from 'lucide-react';
 import { personalInfo } from '../data/portfolioData';
 import { useTheme } from '../context/ThemeContext';
 import { usePortfolio } from '../context/PortfolioContext';
-import { AccentSwitcher } from './AccentSwitcher';
 
 export const Footer: React.FC = () => {
   const { config } = useTheme();
@@ -98,11 +97,11 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Sub-footer: Accent Switcher & Copyright */}
+        {/* Sub-footer: Designed & Built info and Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
           <div className="flex items-center gap-2">
-            <span>Dynamic Theme:</span>
-            <AccentSwitcher compact />
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: config.hex }} />
+            <span>Built with React, TypeScript & Tailwind CSS</span>
           </div>
 
           <div className="flex items-center gap-4">

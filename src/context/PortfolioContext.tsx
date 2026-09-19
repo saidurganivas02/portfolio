@@ -8,7 +8,7 @@ import {
 } from '../data/portfolioData';
 import defaultFallbackPhoto from '../assets/images/default_profile.jpg';
 
-type AdminTab = 'projects' | 'certificates' | 'experience' | 'profile' | 'photo' | 'messages' | 'security';
+type AdminTab = 'projects' | 'certificates' | 'experience' | 'profile' | 'photo' | 'messages' | 'security' | 'theme';
 
 interface PortfolioContextType {
   // Authentication & Credentials

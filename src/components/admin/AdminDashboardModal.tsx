@@ -34,9 +34,10 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle2,
+  Palette,
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, AccentColor, ACCENT_CONFIGS } from '../../context/ThemeContext';
 import { Project, Certification, Experience } from '../../types';
 import { compressImage } from '../../utils/imageCompressor';
 
@@ -75,7 +76,7 @@ export const AdminDashboardModal: React.FC = () => {
     resetCredentials,
   } = usePortfolio();
 
-  const { config } = useTheme();
+  const { config, accent, setAccent } = useTheme();
 
   // -------------------------------------------------------------
   // Section 1: Project State Form
@@ -479,6 +480,7 @@ export const AdminDashboardModal: React.FC = () => {
     { id: 'photo', label: '5. Photo Option', icon: Camera },
     { id: 'messages', label: `6. Inquiries (${messages.length})`, icon: MessageSquare },
     { id: 'security', label: '7. Security', icon: ShieldCheck },
+    { id: 'theme', label: '8. Color Theme', icon: Palette },
   ] as const;
 
   return (
@@ -532,6 +534,28 @@ export const AdminDashboardModal: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Quick Accent Selector */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10" title="Active Website Accent Theme">
+                <Palette className="w-3.5 h-3.5 mr-0.5" style={{ color: config.hex }} />
+                <div className="flex items-center gap-1">
+                  {(['cyan', 'violet', 'emerald', 'amber', 'rose'] as AccentColor[]).map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setAccent(c)}
+                      className={`w-4 h-4 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                        accent === c ? 'ring-2 scale-110' : 'opacity-40 hover:opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: ACCENT_CONFIGS[c].hex,
+                        borderColor: ACCENT_CONFIGS[c].hex,
+                      }}
+                      title={`Switch to ${ACCENT_CONFIGS[c].label}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={logout}
                 className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 text-xs font-mono text-zinc-300 hover:text-rose-300 transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -1998,6 +2022,159 @@ export const AdminDashboardModal: React.FC = () => {
                 {/* Info box */}
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/5 text-[11px] font-mono text-zinc-400 leading-relaxed">
                   🔒 <strong className="text-zinc-300">Note:</strong> Credentials are stored in your browser's localStorage. If you change devices or clear browser data, use <strong className="text-zinc-200">Reset to Default</strong> to restore the original login (username: <span className="text-zinc-200">nivas</span>, password: <span className="text-zinc-200">nivas123</span>).
+                </div>
+              </div>
+            )}
+
+            {/* ============================================================= */}
+            {/* TAB 8: COLOR THEME                                            */}
+            {/* ============================================================= */}
+            {activeAdminTab === 'theme' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Palette className="w-5 h-5" style={{ color: config.hex }} />
+                    Portfolio Color Theme
+                  </h3>
+                  <p className="text-xs font-mono text-zinc-400 mt-1">
+                    Select the website's primary accent color. All buttons, glow effects, borders, active navigation highlights, and gradient accents will instantly adapt.
+                  </p>
+                </div>
+
+                {/* Color Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {(['cyan', 'violet', 'emerald', 'amber', 'rose'] as AccentColor[]).map((col) => {
+                    const themeConf = ACCENT_CONFIGS[col];
+                    const isCurrent = accent === col;
+
+                    return (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => setAccent(col)}
+                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                          isCurrent
+                            ? 'bg-white/10 shadow-xl'
+                            : 'bg-[#151515] border-white/10 hover:border-white/25 hover:bg-[#1a1a1a]'
+                        }`}
+                        style={
+                          isCurrent
+                            ? {
+                                borderColor: themeConf.hex,
+                                boxShadow: `0 0 25px ${themeConf.glowRgba}`,
+                              }
+                            : {}
+                        }
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="w-5 h-5 rounded-full shadow-md flex items-center justify-center ring-2"
+                              style={{
+                                backgroundColor: themeConf.hex,
+                                borderColor: themeConf.hex,
+                                boxShadow: `0 0 10px ${themeConf.hex}`,
+                              }}
+                            />
+                            <span className="font-bold text-sm text-white font-mono">{themeConf.label}</span>
+                          </div>
+                          {isCurrent ? (
+                            <span
+                              className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold text-white flex items-center gap-1"
+                              style={{ backgroundColor: themeConf.hex }}
+                            >
+                              <Check className="w-3 h-3" /> Active
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-zinc-500">{themeConf.hex}</span>
+                          )}
+                        </div>
+
+                        {/* Mini preview strip */}
+                        <div className="space-y-1.5 pt-2 border-t border-white/5">
+                          <div
+                            className="h-1.5 rounded-full w-full"
+                            style={{
+                              background: `linear-gradient(90deg, ${themeConf.hex}, ${themeConf.hex}30)`,
+                            }}
+                          />
+                          <span className="text-[11px] font-mono text-zinc-400 block">
+                            {col === 'cyan' && 'Modern Cyber & Clean'}
+                            {col === 'violet' && 'Creative & Royal'}
+                            {col === 'emerald' && 'High-Tech & Engineering'}
+                            {col === 'amber' && 'Warm Energy & Focus'}
+                            {col === 'rose' && 'Vibrant & Modern Crimson'}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Live Elements Showcase */}
+                <div className="p-5 rounded-2xl bg-[#161616] border border-white/10 space-y-4">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <span className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5" style={{ color: config.hex }} />
+                      Live Theme Preview
+                    </span>
+                    <span className="text-[11px] font-mono text-zinc-400">
+                      Active: <strong className="font-mono" style={{ color: config.hex }}>{config.label} ({config.hex})</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    {/* Primary Button Preview */}
+                    <div className="p-3 rounded-xl bg-[#0e0e0e] border border-white/5 flex flex-col gap-2">
+                      <span className="text-[10px] font-mono text-zinc-500">Primary Button</span>
+                      <button
+                        type="button"
+                        className="py-2 px-3.5 rounded-xl font-bold text-xs text-white flex items-center justify-center gap-1.5 shadow-md"
+                        style={{
+                          backgroundColor: config.hex,
+                          boxShadow: `0 4px 15px ${config.glowRgba}`,
+                        }}
+                      >
+                        <span>Explore Projects</span>
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Badge Preview */}
+                    <div className="p-3 rounded-xl bg-[#0e0e0e] border border-white/5 flex flex-col gap-2">
+                      <span className="text-[10px] font-mono text-zinc-500">Pill & Badges</span>
+                      <div
+                        className="py-2 px-3 rounded-xl border text-xs font-mono flex items-center justify-center gap-2"
+                        style={{
+                          borderColor: `${config.hex}50`,
+                          backgroundColor: `${config.hex}15`,
+                          color: config.hex,
+                        }}
+                      >
+                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: config.hex }} />
+                        <span>Available for Roles</span>
+                      </div>
+                    </div>
+
+                    {/* Gradient Text Preview */}
+                    <div className="p-3 rounded-xl bg-[#0e0e0e] border border-white/5 flex flex-col gap-2">
+                      <span className="text-[10px] font-mono text-zinc-500">Gradient Highlight</span>
+                      <div className="py-2 px-3 rounded-xl bg-white/5 text-center">
+                        <span
+                          className="text-xs font-mono font-extrabold bg-clip-text text-transparent"
+                          style={{
+                            backgroundImage: `linear-gradient(135deg, #ffffff 0%, ${config.hex} 50%, #ffffff 100%)`,
+                          }}
+                        >
+                          Full-Stack Web Apps
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-white/5 border border-white/5 text-[11px] font-mono text-zinc-400">
+                  ✨ The selected color theme is saved and automatically applied across your entire portfolio website for all visitors.
                 </div>
               </div>
             )}

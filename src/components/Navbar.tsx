@@ -4,7 +4,6 @@ import { Menu, X, ArrowUpRight, Phone, Mail, Terminal, LogIn, Settings, LogOut, 
 import { personalInfo } from '../data/portfolioData';
 import { useTheme } from '../context/ThemeContext';
 import { usePortfolio } from '../context/PortfolioContext';
-import { AccentSwitcher } from './AccentSwitcher';
 
 interface NavbarProps {
   onOpenContact: () => void;
@@ -52,8 +51,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
     { label: 'About', href: '#about', id: 'about' },
     { label: 'Projects', href: '#projects', id: 'projects' },
     { label: 'Experience', href: '#experience', id: 'experience' },
-    { label: 'Education', href: '#education', id: 'education' },
+    { label: 'Certifications', href: '#certifications', id: 'certifications' },
     { label: 'Skills', href: '#skills', id: 'skills' },
+    { label: 'Education', href: '#education', id: 'education' },
+    { label: 'Contact', href: '#contact', id: 'contact' },
   ];
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -68,16 +69,41 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
   return (
     <header
       id="main-navigation"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#0a0a0a]/85 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.7)] py-3'
-          : 'bg-[#0a0a0a]/60 backdrop-blur-lg border-b border-white/5 py-4'
+          ? 'bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/10 py-3 shadow-2xl'
+          : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-[#141414]/80 border border-white/10 backdrop-blur-md">
+          
+          {/* Logo / Personal Brand */}
+          <a
+            href="#hero"
+            className="flex items-center gap-3 group focus:outline-none"
+            aria-label="Sai Durga Nivas - Full Stack Developer"
+          >
+            <div
+              className="w-10 h-10 rounded-2xl bg-[#141414] border border-white/10 flex items-center justify-center font-mono font-bold text-sm text-white group-hover:scale-105 transition-all shadow-md group-hover:border-white/30"
+              style={{
+                boxShadow: `0 0 20px ${config.glowRgba}`,
+              }}
+            >
+              <span style={{ color: config.hex }}>NV</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm text-white tracking-tight group-hover:text-zinc-200 transition-colors">
+                {info.name.split(' ')[0]} {info.name.split(' ')[1] || ''}
+              </span>
+              <span className="text-[11px] font-mono text-zinc-400">
+                {info.role}
+              </span>
+            </div>
+          </a>
+
+          {/* Desktop Navigation Links Pill */}
+          <nav className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#141414]/90 border border-white/10 backdrop-blur-md shadow-inner">
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
@@ -85,8 +111,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
                   key={link.id}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className={`relative px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isActive ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+                  className={`relative px-3 py-1 text-xs font-mono rounded-full transition-all duration-300 ${
+                    isActive
+                      ? 'text-white font-semibold'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                   }`}
                 >
                   {isActive && (
@@ -103,10 +131,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
             })}
           </nav>
 
-          {/* Right Actions: Accent Switcher, Log In / Admin, Call & Contact Button */}
+          {/* Right Actions: Log In / Admin, Call & Contact Button */}
           <div className="hidden md:flex items-center gap-2.5">
-            {/* Interactive Dynamic Accent Switcher */}
-            <AccentSwitcher />
 
             {/* Quick Call Button */}
             <a
@@ -189,9 +215,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
             </button>
           </div>
 
-          {/* Mobile Menu & Switcher Toggle */}
+          {/* Mobile Menu Toggle */}
           <div className="flex md:hidden items-center gap-2 ml-auto">
-            <AccentSwitcher compact />
             {isAuthenticated ? (
               <button
                 onClick={() => openAdminModal()}
@@ -230,10 +255,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden border-t border-white/10 bg-[#0a0a0a]/95 backdrop-blur-2xl px-5 py-6 space-y-4"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="text-xs font-mono text-zinc-400">Accent Theme</span>
-              <AccentSwitcher />
-            </div>
 
             {/* Mobile Auth Button */}
             <div className="pb-3 border-b border-white/10">
