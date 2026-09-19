@@ -312,7 +312,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenContact }) => {
                     alt={profile.name}
                     loading="eager"
                     decoding="async"
-                    className="w-full h-full object-cover object-[center_10%] scale-[1.15] filter contrast-[1.02] group-hover:scale-[1.20] transition-transform duration-500"
+                    className="w-full h-full object-cover object-center scale-100 filter contrast-[1.02] group-hover:scale-105 transition-transform duration-500"
                   />
 
                   {/* Subtle inner edge vignette */}

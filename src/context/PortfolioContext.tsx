@@ -187,9 +187,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Hero Photo State
   const [heroPhoto, setHeroPhoto] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      // Clear any legacy test photo from prior sessions
+      // Clear any legacy test photo from prior sessions so new centered portrait shows
       localStorage.removeItem('user_original_photo_data');
-      const saved = localStorage.getItem('user_original_photo_data_v2');
+      localStorage.removeItem('user_original_photo_data_v2');
+      const saved = localStorage.getItem('user_original_photo_data_v3');
       if (saved) return saved;
     }
     return defaultFallbackPhoto;
@@ -422,7 +423,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateHeroPhoto = (dataUrl: string) => {
     setHeroPhoto(dataUrl);
     try {
-      localStorage.setItem('user_original_photo_data_v2', dataUrl);
+      localStorage.setItem('user_original_photo_data_v3', dataUrl);
     } catch (e) {
       console.warn('Storage quota limit:', e);
     }
@@ -430,6 +431,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const resetHeroPhoto = () => {
     setHeroPhoto(defaultFallbackPhoto);
+    localStorage.removeItem('user_original_photo_data_v3');
     localStorage.removeItem('user_original_photo_data_v2');
     localStorage.removeItem('user_original_photo_data');
   };
@@ -444,6 +446,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('nivas_portfolio_certifications');
     localStorage.removeItem('nivas_portfolio_experiences');
     localStorage.removeItem('nivas_portfolio_profile');
+    localStorage.removeItem('user_original_photo_data_v3');
     localStorage.removeItem('user_original_photo_data_v2');
     localStorage.removeItem('user_original_photo_data');
     resetCredentials();
