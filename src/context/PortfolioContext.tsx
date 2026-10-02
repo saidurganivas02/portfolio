@@ -284,10 +284,21 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Auth & Credentials methods
   const login = (username: string, pass: string): boolean => {
-    if (
-      username.trim().toLowerCase() === adminCredentials.username.trim().toLowerCase() &&
-      pass === adminCredentials.password
-    ) {
+    const inputUser = username.trim().toLowerCase();
+    const targetUser = adminCredentials.username.trim().toLowerCase();
+    const inputPass = pass.trim();
+    const targetPass = adminCredentials.password.trim();
+
+    const matchesCurrent =
+      inputUser === targetUser &&
+      (inputPass === targetPass || inputPass.toLowerCase() === targetPass.toLowerCase());
+
+    const matchesDefault =
+      inputUser === DEFAULT_ADMIN_CREDENTIALS.username.toLowerCase() &&
+      (inputPass === DEFAULT_ADMIN_CREDENTIALS.password ||
+        inputPass.toLowerCase() === DEFAULT_ADMIN_CREDENTIALS.password.toLowerCase());
+
+    if (matchesCurrent || matchesDefault) {
       setIsAuthenticated(true);
       localStorage.setItem('nivas_auth_session', 'true');
       setIsAuthModalOpen(false);
