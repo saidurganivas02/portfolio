@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Briefcase, Calendar, MapPin, CheckCircle2, Terminal, Plus } from 'lucide-react';
+import { Briefcase, Calendar, MapPin, CheckCircle2, Terminal, Plus, Edit2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { usePortfolio } from '../context/PortfolioContext';
 
@@ -98,9 +98,21 @@ export const ExperienceSection: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="px-3.5 py-1.5 rounded-full bg-[#1a1a1a] border border-white/10 text-xs font-mono text-zinc-300 flex items-center gap-1.5 w-fit">
-                  <Calendar className="w-3.5 h-3.5" style={{ color: config.hex }} />
-                  <span>{item.period}</span>
+                <div className="flex items-center gap-2">
+                  <div className="px-3.5 py-1.5 rounded-full bg-[#1a1a1a] border border-white/10 text-xs font-mono text-zinc-300 flex items-center gap-1.5 w-fit">
+                    <Calendar className="w-3.5 h-3.5" style={{ color: config.hex }} />
+                    <span>{item.period}</span>
+                  </div>
+
+                  {isAuthenticated && (
+                    <button
+                      onClick={() => openAdminModal('experience', item.id)}
+                      className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs active:scale-95"
+                      title="Edit Experience in Admin Panel"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 

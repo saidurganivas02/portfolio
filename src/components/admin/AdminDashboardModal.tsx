@@ -35,10 +35,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Palette,
+  BookOpen,
+  Code2,
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useTheme, AccentColor, ACCENT_CONFIGS } from '../../context/ThemeContext';
-import { Project, Certification, Experience } from '../../types';
+import { Project, Certification, Experience, Education, SkillCategory } from '../../types';
 import { compressImage } from '../../utils/imageCompressor';
 
 export const AdminDashboardModal: React.FC = () => {
@@ -63,6 +65,16 @@ export const AdminDashboardModal: React.FC = () => {
     addExperience,
     updateExperience,
     deleteExperience,
+    education,
+    addEducation,
+    updateEducation,
+    deleteEducation,
+    skills,
+    updateSkills,
+    addSkillCategory,
+    deleteSkillCategory,
+    addSkillToCategory,
+    deleteSkillFromCategory,
     profile,
     updateProfile,
     heroPhoto,
@@ -102,6 +114,33 @@ export const AdminDashboardModal: React.FC = () => {
       }
     }
   }, [adminEditTargetId, activeAdminTab, projects]);
+
+  useEffect(() => {
+    if (adminEditTargetId && activeAdminTab === 'experience') {
+      const targetExp = experiences.find((e) => e.id === adminEditTargetId);
+      if (targetExp) {
+        handleEditExpClick(targetExp);
+      }
+    }
+  }, [adminEditTargetId, activeAdminTab, experiences]);
+
+  useEffect(() => {
+    if (adminEditTargetId && activeAdminTab === 'certificates') {
+      const targetCert = certifications.find((c) => c.id === adminEditTargetId);
+      if (targetCert) {
+        handleEditCertClick(targetCert);
+      }
+    }
+  }, [adminEditTargetId, activeAdminTab, certifications]);
+
+  useEffect(() => {
+    if (adminEditTargetId && activeAdminTab === 'education') {
+      const targetEdu = education.find((e) => e.id === adminEditTargetId);
+      if (targetEdu) {
+        handleEditEduClick(targetEdu);
+      }
+    }
+  }, [adminEditTargetId, activeAdminTab, education]);
 
   const resetProjectForm = () => {
     setEditingProjectId(null);
@@ -236,15 +275,18 @@ export const AdminDashboardModal: React.FC = () => {
 
   // -------------------------------------------------------------
   // Section 3: Experience State Form
-  // 1) title, 2) role, 3) period from and to, 4) description
+  // 1) company, 2) role, 3) period from & to, 4) location, 5) skills tags, 6) description
   // -------------------------------------------------------------
   const [editingExpId, setEditingExpId] = useState<string | null>(null);
   const [expTitle, setExpTitle] = useState('');
   const [expRole, setExpRole] = useState('');
   const [expPeriodFrom, setExpPeriodFrom] = useState('');
   const [expPeriodTo, setExpPeriodTo] = useState('');
+  const [expLocation, setExpLocation] = useState('India');
+  const [expSkills, setExpSkills] = useState('');
   const [expDescription, setExpDescription] = useState('');
   const [expSavedNotice, setExpSavedNotice] = useState(false);
+  const expFormRef = useRef<HTMLDivElement>(null);
 
   const resetExpForm = () => {
     setEditingExpId(null);
@@ -252,17 +294,23 @@ export const AdminDashboardModal: React.FC = () => {
     setExpRole('');
     setExpPeriodFrom('');
     setExpPeriodTo('');
+    setExpLocation('India');
+    setExpSkills('');
     setExpDescription('');
+    setAdminEditTargetId(null);
   };
 
   const handleEditExpClick = (exp: Experience) => {
     setEditingExpId(exp.id);
     setExpTitle(exp.company);
     setExpRole(exp.role);
-    const parts = exp.period.split('—').map((p) => p.trim());
+    setExpLocation(exp.companyLocation || 'India');
+    setExpSkills(exp.skills ? exp.skills.join(', ') : '');
+    const parts = exp.period.split(/[-—–]/).map((p) => p.trim());
     setExpPeriodFrom(parts[0] || '');
     setExpPeriodTo(parts[1] || 'Present');
     setExpDescription(exp.summary || exp.achievements.join('\n'));
+    expFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleExpSubmit = (e: React.FormEvent) => {
@@ -275,14 +323,19 @@ export const AdminDashboardModal: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const skillsList = expSkills
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     const expPayload = {
       company: expTitle.trim(),
       role: expRole.trim(),
       period: periodStr,
-      companyLocation: 'India',
+      companyLocation: expLocation.trim() || 'India',
       summary: expDescription.trim(),
       achievements: achievementsList.length > 0 ? achievementsList : [expDescription.trim()],
-      skills: ['Full Stack', 'Web Architecture', 'Agile Delivery'],
+      skills: skillsList.length > 0 ? skillsList : ['Full Stack', 'Web Architecture', 'Agile Delivery'],
     };
 
     if (editingExpId) {
@@ -294,6 +347,98 @@ export const AdminDashboardModal: React.FC = () => {
     resetExpForm();
     setExpSavedNotice(true);
     setTimeout(() => setExpSavedNotice(false), 2200);
+  };
+
+  // -------------------------------------------------------------
+  // Section 3b: Education State Form
+  // -------------------------------------------------------------
+  const [editingEduId, setEditingEduId] = useState<string | null>(null);
+  const [eduDegree, setEduDegree] = useState('');
+  const [eduInstitution, setEduInstitution] = useState('');
+  const [eduPeriod, setEduPeriod] = useState('');
+  const [eduCgpa, setEduCgpa] = useState('');
+  const [eduDetails, setEduDetails] = useState('');
+  const [eduSavedNotice, setEduSavedNotice] = useState(false);
+  const eduFormRef = useRef<HTMLDivElement>(null);
+
+  const resetEduForm = () => {
+    setEditingEduId(null);
+    setEduDegree('');
+    setEduInstitution('');
+    setEduPeriod('');
+    setEduCgpa('');
+    setEduDetails('');
+    setAdminEditTargetId(null);
+  };
+
+  const handleEditEduClick = (edu: Education) => {
+    setEditingEduId(edu.id);
+    setEduDegree(edu.degree);
+    setEduInstitution(edu.institution);
+    setEduPeriod(edu.period);
+    setEduCgpa(edu.cgpa);
+    setEduDetails(edu.details || '');
+    eduFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleEduSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eduDegree.trim() || !eduInstitution.trim()) return;
+
+    const eduPayload = {
+      degree: eduDegree.trim(),
+      institution: eduInstitution.trim(),
+      period: eduPeriod.trim() || '2024 — 2026',
+      cgpa: eduCgpa.trim() || 'CGPA: 8.0',
+      details: eduDetails.trim(),
+    };
+
+    if (editingEduId) {
+      updateEducation(editingEduId, eduPayload);
+    } else {
+      addEducation(eduPayload);
+    }
+
+    resetEduForm();
+    setEduSavedNotice(true);
+    setTimeout(() => setEduSavedNotice(false), 2200);
+  };
+
+  // -------------------------------------------------------------
+  // Section 3c: Skills State Form
+  // -------------------------------------------------------------
+  const [targetCategoryForSkill, setTargetCategoryForSkill] = useState('');
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillTag, setNewSkillTag] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDesc, setNewCategoryDesc] = useState('');
+  const [skillSavedNotice, setSkillSavedNotice] = useState(false);
+
+  const handleAddSkillToCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetCategoryForSkill || !newSkillName.trim()) return;
+    addSkillToCategory(targetCategoryForSkill, {
+      name: newSkillName.trim(),
+      tag: newSkillTag.trim() || 'Technology',
+    });
+    setNewSkillName('');
+    setNewSkillTag('');
+    setSkillSavedNotice(true);
+    setTimeout(() => setSkillSavedNotice(false), 2000);
+  };
+
+  const handleAddCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    addSkillCategory({
+      name: newCategoryName.trim(),
+      description: newCategoryDesc.trim() || 'Technical competencies and tools',
+      skills: [],
+    });
+    setNewCategoryName('');
+    setNewCategoryDesc('');
+    setSkillSavedNotice(true);
+    setTimeout(() => setSkillSavedNotice(false), 2000);
   };
 
   // -------------------------------------------------------------
@@ -476,11 +621,13 @@ export const AdminDashboardModal: React.FC = () => {
     { id: 'projects', label: '1. Projects', icon: FolderGit2 },
     { id: 'certificates', label: '2. Certificates', icon: Award },
     { id: 'experience', label: '3. Experience', icon: Briefcase },
-    { id: 'profile', label: '4. Hero & Profile', icon: User },
-    { id: 'photo', label: '5. Photo Option', icon: Camera },
-    { id: 'messages', label: `6. Inquiries (${messages.length})`, icon: MessageSquare },
-    { id: 'security', label: '7. Security', icon: ShieldCheck },
-    { id: 'theme', label: '8. Color Theme', icon: Palette },
+    { id: 'education', label: '4. Education', icon: BookOpen },
+    { id: 'skills', label: '5. Skills', icon: Code2 },
+    { id: 'profile', label: '6. Hero & Profile', icon: User },
+    { id: 'photo', label: '7. Photo Option', icon: Camera },
+    { id: 'messages', label: `8. Inquiries (${messages.length})`, icon: MessageSquare },
+    { id: 'security', label: '9. Security', icon: ShieldCheck },
+    { id: 'theme', label: '10. Color Theme', icon: Palette },
   ] as const;
 
   return (
@@ -1080,7 +1227,7 @@ export const AdminDashboardModal: React.FC = () => {
 
             {/* ========================================================================= */}
             {/* TAB 3: EXPERIENCE SECTION                                                 */}
-            {/* 1) title 2) role 3) period from and to 4) description                     */}
+            {/* 1) title 2) role 3) period from and to 4) location 5) skills 6) desc      */}
             {/* ========================================================================= */}
             {activeAdminTab === 'experience' && (
               <div className="space-y-6">
@@ -1091,7 +1238,7 @@ export const AdminDashboardModal: React.FC = () => {
                       <span>{editingExpId ? 'Edit Experience' : 'Add New Experience'}</span>
                     </h4>
                     <p className="text-xs font-mono text-zinc-400">
-                      Configure title/company, role, period (from & to), and key description
+                      Configure title/company, role, period (from & to), location, technologies, and description
                     </p>
                   </div>
                   {editingExpId && (
@@ -1112,79 +1259,491 @@ export const AdminDashboardModal: React.FC = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleExpSubmit} className="space-y-4 bg-[#171717]/80 p-5 rounded-2xl border border-white/10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div ref={expFormRef}>
+                  {editingExpId && (
+                    <div className="mb-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs font-mono text-amber-300">
+                      <div className="flex items-center gap-2">
+                        <Edit2 className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Editing: <strong>{expRole}</strong> @ <strong>{expTitle}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetExpForm}
+                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                      >
+                        Cancel Edit
+                      </button>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleExpSubmit} className="space-y-4 bg-[#171717]/80 p-5 rounded-2xl border border-white/10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          1) Title (Company / Organization) *
+                        </label>
+                        <input
+                          type="text"
+                          value={expTitle}
+                          onChange={(e) => setExpTitle(e.target.value)}
+                          placeholder="e.g. ADHOC Networks / Google"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          2) Role *
+                        </label>
+                        <input
+                          type="text"
+                          value={expRole}
+                          onChange={(e) => setExpRole(e.target.value)}
+                          placeholder="e.g. MERN Stack Developer Intern"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          3) Period From *
+                        </label>
+                        <input
+                          type="text"
+                          value={expPeriodFrom}
+                          onChange={(e) => setExpPeriodFrom(e.target.value)}
+                          placeholder="e.g. May 2025"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          4) Period To *
+                        </label>
+                        <input
+                          type="text"
+                          value={expPeriodTo}
+                          onChange={(e) => setExpPeriodTo(e.target.value)}
+                          placeholder="e.g. July 2025 or Present"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          5) Location
+                        </label>
+                        <input
+                          type="text"
+                          value={expLocation}
+                          onChange={(e) => setExpLocation(e.target.value)}
+                          placeholder="e.g. India / Remote / Hyderabad"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-mono text-zinc-300 mb-1.5">
-                        1) Title (Company / Organization) *
+                        6) Technologies / Skills (Comma-separated)
                       </label>
                       <input
                         type="text"
-                        value={expTitle}
-                        onChange={(e) => setExpTitle(e.target.value)}
-                        placeholder="e.g. ADHOC Networks / Google"
-                        required
+                        value={expSkills}
+                        onChange={(e) => setExpSkills(e.target.value)}
+                        placeholder="e.g. React.js, Node.js, Express.js, MongoDB, REST APIs"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-mono text-zinc-300 mb-1.5">
-                        2) Role *
+                        7) Description & Key Accomplishments *
                       </label>
-                      <input
-                        type="text"
-                        value={expRole}
-                        onChange={(e) => setExpRole(e.target.value)}
-                        placeholder="e.g. MERN Stack Developer Intern"
+                      <textarea
+                        rows={3}
+                        value={expDescription}
+                        onChange={(e) => setExpDescription(e.target.value)}
+                        placeholder="Summary of responsibilities, technologies used, and accomplishments..."
                         required
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
                       />
                     </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="submit"
+                        className="flex-1 py-3 rounded-xl font-bold text-xs text-white shadow-md active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: config.hex,
+                          boxShadow: `0 4px 15px ${config.glowRgba}`,
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>{editingExpId ? 'Update Experience' : 'Save Experience'}</span>
+                      </button>
+                      {editingExpId && (
+                        <button
+                          type="button"
+                          onClick={resetExpForm}
+                          className="px-5 py-3 rounded-xl font-bold text-xs text-zinc-300 bg-white/10 hover:bg-white/15 transition-all cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+
+                {/* Existing Experience List */}
+                <div className="space-y-3">
+                  <h5 className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
+                    Existing Experiences ({experiences.length})
+                  </h5>
+                  <div className="space-y-2">
+                    {experiences.map((item) => {
+                      const isItemActive = editingExpId === item.id;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-4 rounded-xl bg-[#171717] border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            isItemActive
+                              ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/30'
+                              : 'border-white/5'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white">{item.role}</span>
+                              <span className="text-xs font-mono text-zinc-400">@ {item.company}</span>
+                            </div>
+                            <span className="text-xs font-mono" style={{ color: config.hex }}>
+                              {item.period}
+                            </span>
+                            <p className="text-xs text-zinc-400 line-clamp-1 mt-1">{item.summary}</p>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEditExpClick(item)}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer"
+                              title="Edit Experience"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteExperience(item.id)}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 cursor-pointer"
+                              title="Delete Experience"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                </div>
+              </div>
+            )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
-                        3) Period From *
-                      </label>
-                      <input
-                        type="text"
-                        value={expPeriodFrom}
-                        onChange={(e) => setExpPeriodFrom(e.target.value)}
-                        placeholder="e.g. May 2025"
-                        required
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
-                        3) Period To *
-                      </label>
-                      <input
-                        type="text"
-                        value={expPeriodTo}
-                        onChange={(e) => setExpPeriodTo(e.target.value)}
-                        placeholder="e.g. July 2025 or Present"
-                        required
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
-                      />
-                    </div>
-                  </div>
-
+            {/* ========================================================================= */}
+            {/* TAB: EDUCATION SECTION                                                    */}
+            {/* ========================================================================= */}
+            {activeAdminTab === 'education' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10">
                   <div>
-                    <label className="block text-xs font-mono text-zinc-300 mb-1.5">
-                      4) Description *
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={expDescription}
-                      onChange={(e) => setExpDescription(e.target.value)}
-                      placeholder="Summary of responsibilities, technologies used, and accomplishments..."
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
-                    />
+                    <h4 className="text-base font-bold text-white flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" style={{ color: config.hex }} />
+                      <span>{editingEduId ? 'Edit Academic Degree' : 'Add Academic Degree'}</span>
+                    </h4>
+                    <p className="text-xs font-mono text-zinc-400">
+                      Manage degrees, institutions, study periods, CGPA / grades, and achievements
+                    </p>
+                  </div>
+                  {editingEduId && (
+                    <button
+                      type="button"
+                      onClick={resetEduForm}
+                      className="text-xs font-mono text-zinc-400 hover:text-white underline cursor-pointer"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+
+                {eduSavedNotice && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    <span>Education record updated successfully!</span>
+                  </div>
+                )}
+
+                <div ref={eduFormRef}>
+                  {editingEduId && (
+                    <div className="mb-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs font-mono text-amber-300">
+                      <div className="flex items-center gap-2">
+                        <Edit2 className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Editing: <strong>{eduDegree}</strong> @ <strong>{eduInstitution}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetEduForm}
+                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                      >
+                        Cancel Edit
+                      </button>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleEduSubmit} className="space-y-4 bg-[#171717]/80 p-5 rounded-2xl border border-white/10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          1) Degree / Certificate Title *
+                        </label>
+                        <input
+                          type="text"
+                          value={eduDegree}
+                          onChange={(e) => setEduDegree(e.target.value)}
+                          placeholder="e.g. Master of Computer Applications (MCA)"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          2) University / Institution *
+                        </label>
+                        <input
+                          type="text"
+                          value={eduInstitution}
+                          onChange={(e) => setEduInstitution(e.target.value)}
+                          placeholder="e.g. Aditya Degree & PG College, AKNU University"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          3) Study Period *
+                        </label>
+                        <input
+                          type="text"
+                          value={eduPeriod}
+                          onChange={(e) => setEduPeriod(e.target.value)}
+                          placeholder="e.g. 2024 — 2026"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                          4) CGPA / Grade / Score *
+                        </label>
+                        <input
+                          type="text"
+                          value={eduCgpa}
+                          onChange={(e) => setEduCgpa(e.target.value)}
+                          placeholder="e.g. CGPA: 8.1"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                        5) Academic Specialization & Highlights
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={eduDetails}
+                        onChange={(e) => setEduDetails(e.target.value)}
+                        placeholder="Key coursework, core disciplines, projects or academic honors..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="submit"
+                        className="flex-1 py-3 rounded-xl font-bold text-xs text-white shadow-md active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: config.hex,
+                          boxShadow: `0 4px 15px ${config.glowRgba}`,
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>{editingEduId ? 'Update Academic Degree' : 'Save Degree Entry'}</span>
+                      </button>
+                      {editingEduId && (
+                        <button
+                          type="button"
+                          onClick={resetEduForm}
+                          className="px-5 py-3 rounded-xl font-bold text-xs text-zinc-300 bg-white/10 hover:bg-white/15 transition-all cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+
+                {/* Existing Education List */}
+                <div className="space-y-3">
+                  <h5 className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
+                    Existing Degrees ({education.length})
+                  </h5>
+                  <div className="space-y-2">
+                    {education.map((item) => {
+                      const isItemActive = editingEduId === item.id;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-4 rounded-xl bg-[#171717] border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            isItemActive
+                              ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/30'
+                              : 'border-white/5'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white">{item.degree}</span>
+                              <span className="text-xs font-mono text-zinc-400">@ {item.institution}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs font-mono font-bold" style={{ color: config.hex }}>
+                                {item.cgpa}
+                              </span>
+                              <span className="text-zinc-600">•</span>
+                              <span className="text-xs font-mono text-zinc-400">
+                                {item.period}
+                              </span>
+                            </div>
+                            {item.details && (
+                              <p className="text-xs text-zinc-400 line-clamp-1 mt-1">{item.details}</p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEditEduClick(item)}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer"
+                              title="Edit Degree"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteEducation(item.id)}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 cursor-pointer"
+                              title="Delete Degree"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* TAB: SKILLS SECTION                                                       */}
+            {/* ========================================================================= */}
+            {activeAdminTab === 'skills' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                  <div>
+                    <h4 className="text-base font-bold text-white flex items-center gap-2">
+                      <Code2 className="w-4 h-4" style={{ color: config.hex }} />
+                      <span>Skills Matrix & Tech Stack Manager</span>
+                    </h4>
+                    <p className="text-xs font-mono text-zinc-400">
+                      Add, update, or remove technical skills across your core competencies
+                    </p>
+                  </div>
+                </div>
+
+                {skillSavedNotice && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    <span>Skills matrix updated successfully!</span>
+                  </div>
+                )}
+
+                {/* Add Skill to Category Form */}
+                <form onSubmit={handleAddSkillToCategory} className="space-y-4 bg-[#171717]/80 p-5 rounded-2xl border border-white/10">
+                  <h5 className="text-xs font-mono text-zinc-300 font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Plus className="w-3.5 h-3.5" style={{ color: config.hex }} />
+                    <span>Add New Skill to a Category</span>
+                  </h5>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                        Target Category *
+                      </label>
+                      <select
+                        value={targetCategoryForSkill}
+                        onChange={(e) => setTargetCategoryForSkill(e.target.value)}
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                      >
+                        <option value="">Select Category...</option>
+                        {skills.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                        Skill Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={newSkillName}
+                        onChange={(e) => setNewSkillName(e.target.value)}
+                        placeholder="e.g. Next.js, Docker, Redis"
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-300 mb-1.5">
+                        Badge Tag (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newSkillTag}
+                        onChange={(e) => setNewSkillTag(e.target.value)}
+                        placeholder="e.g. Framework, In-Memory DB"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                      />
+                    </div>
                   </div>
 
                   <button
@@ -1196,52 +1755,102 @@ export const AdminDashboardModal: React.FC = () => {
                     }}
                   >
                     <Plus className="w-4 h-4" />
-                    <span>{editingExpId ? 'Update Experience' : 'Save Experience'}</span>
+                    <span>Add Skill to Matrix</span>
                   </button>
                 </form>
 
-                {/* Existing Experience List */}
-                <div className="space-y-3">
+                {/* Existing Categories & Skills List */}
+                <div className="space-y-4">
                   <h5 className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
-                    Existing Experiences ({experiences.length})
+                    Categories & Configured Skills ({skills.length} Categories)
                   </h5>
-                  <div className="space-y-2">
-                    {experiences.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 rounded-xl bg-[#171717] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white">{item.role}</span>
-                            <span className="text-xs font-mono text-zinc-400">@ {item.company}</span>
-                          </div>
-                          <span className="text-xs font-mono" style={{ color: config.hex }}>
-                            {item.period}
-                          </span>
-                          <p className="text-xs text-zinc-400 line-clamp-1 mt-1">{item.summary}</p>
-                        </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                  <div className="space-y-4">
+                    {skills.map((cat) => (
+                      <div key={cat.name} className="p-5 rounded-2xl bg-[#171717] border border-white/10 space-y-3">
+                        <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-white/5">
+                          <div>
+                            <h6 className="text-sm font-bold text-white flex items-center gap-2">
+                              <span style={{ color: config.hex }}>●</span>
+                              <span>{cat.name}</span>
+                            </h6>
+                            <p className="text-xs text-zinc-400 font-mono mt-0.5">{cat.description}</p>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => handleEditExpClick(item)}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white cursor-pointer"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteExperience(item.id)}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 cursor-pointer"
+                            onClick={() => {
+                              if (confirm(`Delete entire category "${cat.name}"?`)) {
+                                deleteSkillCategory(cat.name);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 text-xs font-mono transition-colors cursor-pointer"
+                            title="Delete Category"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
+                        </div>
+
+                        {/* Skill Chips */}
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {cat.skills.map((s) => (
+                            <span
+                              key={s.name}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#121212] border border-white/10 text-xs font-mono text-zinc-200"
+                            >
+                              <span>{s.name}</span>
+                              {s.tag && (
+                                <span className="text-[10px] text-zinc-500">({s.tag})</span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => deleteSkillFromCategory(cat.name, s.name)}
+                                className="ml-1 text-zinc-400 hover:text-rose-400 cursor-pointer"
+                                title={`Remove ${s.name}`}
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                          {cat.skills.length === 0 && (
+                            <span className="text-xs font-mono text-zinc-500 italic">No skills in this category yet.</span>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                {/* Create New Category Form */}
+                <form onSubmit={handleAddCategory} className="space-y-4 bg-[#141414] p-5 rounded-2xl border border-dashed border-white/15">
+                  <h5 className="text-xs font-mono text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Create Custom Category</span>
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Category Name (e.g. Cloud & DevOps)"
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                    />
+                    <input
+                      type="text"
+                      value={newCategoryDesc}
+                      onChange={(e) => setNewCategoryDesc(e.target.value)}
+                      placeholder="Short description of category..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#121212] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold text-zinc-200 bg-white/10 hover:bg-white/15 transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Category</span>
+                  </button>
+                </form>
               </div>
             )}
 

@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Terminal, Code2, Server, Database, Wrench } from 'lucide-react';
-import { skillCategories } from '../data/portfolioData';
+import { Terminal, Code2, Server, Database, Wrench, Edit3 } from 'lucide-react';
 import { getSkillIcon } from './TechIcons';
 import { useTheme } from '../context/ThemeContext';
+import { usePortfolio } from '../context/PortfolioContext';
 
 export const SkillsSection: React.FC = () => {
   const { config } = useTheme();
+  const { skills, isAuthenticated, openAdminModal } = usePortfolio();
 
   return (
     <section id="skills" className="py-24 relative overflow-hidden">
@@ -42,11 +43,27 @@ export const SkillsSection: React.FC = () => {
           >
             Hands-on expertise across modern full-stack web technologies, clean REST APIs, relational and document databases, and development workflows.
           </motion.p>
+
+          {isAuthenticated && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => openAdminModal('skills')}
+                className="px-4 py-2 rounded-xl text-xs font-mono font-bold text-white shadow-md flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+                style={{
+                  backgroundColor: config.hex,
+                  boxShadow: `0 4px 15px ${config.glowRgba}`,
+                }}
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Skills Matrix</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 4 Category Bento Matrix */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {skillCategories.map((category, catIdx) => (
+          {skills.map((category, catIdx) => (
             <motion.div
               key={category.name}
               initial={{ opacity: 0, y: 20 }}

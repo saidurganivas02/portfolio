@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Project, Certification, Experience, ContactMessage } from '../types';
+import { Project, Certification, Experience, Education, SkillCategory, ContactMessage } from '../types';
 import {
   personalInfo as initialPersonalInfo,
   projectsData as initialProjectsData,
   certificationsData as initialCertificationsData,
   experienceData as initialExperienceData,
+  educationData as initialEducationData,
+  skillCategories as initialSkillCategories,
 } from '../data/portfolioData';
 import defaultFallbackPhoto from '../assets/images/default_profile.jpg';
 
-type AdminTab = 'projects' | 'certificates' | 'experience' | 'profile' | 'photo' | 'messages' | 'security' | 'theme';
+type AdminTab = 'projects' | 'certificates' | 'experience' | 'skills' | 'education' | 'profile' | 'photo' | 'messages' | 'security' | 'theme';
 
 interface PortfolioContextType {
   // Authentication & Credentials
@@ -52,6 +54,20 @@ interface PortfolioContextType {
   addExperience: (exp: Omit<Experience, 'id'>) => void;
   updateExperience: (id: string, exp: Partial<Experience>) => void;
   deleteExperience: (id: string) => void;
+
+  // Education
+  education: Education[];
+  addEducation: (edu: Omit<Education, 'id'>) => void;
+  updateEducation: (id: string, edu: Partial<Education>) => void;
+  deleteEducation: (id: string) => void;
+
+  // Skills
+  skills: SkillCategory[];
+  updateSkills: (skills: SkillCategory[]) => void;
+  addSkillCategory: (cat: SkillCategory) => void;
+  deleteSkillCategory: (name: string) => void;
+  addSkillToCategory: (categoryName: string, skill: { name: string; tag?: string; iconName?: string }) => void;
+  deleteSkillFromCategory: (categoryName: string, skillName: string) => void;
 
   // Profile Information
   profile: typeof initialPersonalInfo;
@@ -162,6 +178,36 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return initialExperienceData;
   });
 
+  // Education State
+  const [education, setEducation] = useState<Education[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nivas_portfolio_education');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return initialEducationData;
+  });
+
+  // Skills State
+  const [skills, setSkills] = useState<SkillCategory[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nivas_portfolio_skills');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return initialSkillCategories;
+  });
+
   // Profile Information State
   const [profile, setProfile] = useState<typeof initialPersonalInfo>(() => {
     if (typeof window !== 'undefined') {
@@ -245,6 +291,22 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.warn('Storage error:', e);
     }
   }, [experiences]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('nivas_portfolio_education', JSON.stringify(education));
+    } catch (e) {
+      console.warn('Storage error:', e);
+    }
+  }, [education]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('nivas_portfolio_skills', JSON.stringify(skills));
+    } catch (e) {
+      console.warn('Storage error:', e);
+    }
+  }, [skills]);
 
   useEffect(() => {
     try {
@@ -425,6 +487,66 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setExperiences((prev) => prev.filter((e) => e.id !== id));
   };
 
+  // Education methods
+  const addEducation = (eduData: Omit<Education, 'id'>) => {
+    const newEdu: Education = {
+      ...eduData,
+      id: `edu-${Date.now()}`,
+    };
+    setEducation((prev) => [newEdu, ...prev]);
+  };
+
+  const updateEducation = (id: string, eduData: Partial<Education>) => {
+    setEducation((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...eduData } : e))
+    );
+  };
+
+  const deleteEducation = (id: string) => {
+    setEducation((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  // Skills methods
+  const updateSkills = (newSkills: SkillCategory[]) => {
+    setSkills(newSkills);
+  };
+
+  const addSkillCategory = (cat: SkillCategory) => {
+    setSkills((prev) => [...prev, cat]);
+  };
+
+  const deleteSkillCategory = (name: string) => {
+    setSkills((prev) => prev.filter((c) => c.name !== name));
+  };
+
+  const addSkillToCategory = (categoryName: string, skill: { name: string; tag?: string; iconName?: string }) => {
+    setSkills((prev) =>
+      prev.map((cat) => {
+        if (cat.name === categoryName) {
+          return {
+            ...cat,
+            skills: [...cat.skills, skill],
+          };
+        }
+        return cat;
+      })
+    );
+  };
+
+  const deleteSkillFromCategory = (categoryName: string, skillName: string) => {
+    setSkills((prev) =>
+      prev.map((cat) => {
+        if (cat.name === categoryName) {
+          return {
+            ...cat,
+            skills: cat.skills.filter((s) => s.name !== skillName),
+          };
+        }
+        return cat;
+      })
+    );
+  };
+
   // Profile methods
   const updateProfile = (data: Partial<typeof initialPersonalInfo>) => {
     setProfile((prev) => ({ ...prev, ...data }));
@@ -451,11 +573,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjects(initialProjectsData);
     setCertifications(initialCertificationsData);
     setExperiences(initialExperienceData);
+    setEducation(initialEducationData);
+    setSkills(initialSkillCategories);
     setProfile(initialPersonalInfo);
     setHeroPhoto(defaultFallbackPhoto);
     localStorage.removeItem('nivas_portfolio_projects');
     localStorage.removeItem('nivas_portfolio_certifications');
     localStorage.removeItem('nivas_portfolio_experiences');
+    localStorage.removeItem('nivas_portfolio_education');
+    localStorage.removeItem('nivas_portfolio_skills');
     localStorage.removeItem('nivas_portfolio_profile');
     localStorage.removeItem('user_original_photo_data_v3');
     localStorage.removeItem('user_original_photo_data_v2');
@@ -496,6 +622,16 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addExperience,
         updateExperience,
         deleteExperience,
+        education,
+        addEducation,
+        updateEducation,
+        deleteEducation,
+        skills,
+        updateSkills,
+        addSkillCategory,
+        deleteSkillCategory,
+        addSkillToCategory,
+        deleteSkillFromCategory,
         profile,
         updateProfile,
         heroPhoto,

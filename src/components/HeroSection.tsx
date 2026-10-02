@@ -245,6 +245,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenContact }) => {
                 {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-zinc-400" />}
                 <span className="hidden sm:inline">{copiedEmail ? 'Copied!' : 'Copy Email'}</span>
               </button>
+
+              {/* Admin Quick Edit Hero */}
+              {isAuthenticated && (
+                <button
+                  onClick={() => openAdminModal('profile')}
+                  className="p-3.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-zinc-200 hover:text-white transition-all text-xs font-mono flex items-center gap-2 cursor-pointer active:scale-95 shadow-md"
+                  title="Edit Hero & Profile Details"
+                >
+                  <Edit3 className="w-4 h-4" style={{ color: config.hex }} />
+                  <span>Edit Hero</span>
+                </button>
+              )}
             </div>
 
             {/* Quick Metrics Bar */}

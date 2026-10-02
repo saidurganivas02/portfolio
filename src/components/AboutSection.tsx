@@ -52,6 +52,22 @@ export const AboutSection: React.FC = () => {
           >
             Bridging intuitive, high-performance interfaces with robust server architectures and durable data stores.
           </motion.p>
+
+          {isAuthenticated && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => openAdminModal('profile')}
+                className="px-4 py-2 rounded-xl text-xs font-mono font-bold text-white shadow-md flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+                style={{
+                  backgroundColor: config.hex,
+                  boxShadow: `0 4px 15px ${config.glowRgba}`,
+                }}
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit About & Bio</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Bento Grid Layout */}
