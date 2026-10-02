@@ -205,11 +205,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenContact }) => {
               {/* Direct Call Button */}
               <a
                 href={`tel:${(profile.phone || '+91-6300697301').replace(/[^0-9+]/g, '')}`}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-xs font-mono text-zinc-300 bg-[#171717] hover:bg-[#202020] border border-white/10 hover:border-white/20 transition-all"
-                title={`Call ${profile.phone || '+91-6300697301'}`}
+                className="p-3.5 rounded-xl text-zinc-300 bg-[#171717] hover:bg-[#202020] border border-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center"
+                aria-label="Direct Call"
+                title="Direct Call"
               >
                 <Phone className="w-4 h-4" style={{ color: config.hex }} />
-                <span>{profile.phone || '+91-6300697301'}</span>
               </a>
 
               {/* GitHub Repositories Link */}

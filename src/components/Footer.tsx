@@ -60,8 +60,8 @@ export const Footer: React.FC = () => {
             </a>
             <a
               href={`tel:${(info.phone || '+91-6300697301').replace(/[^0-9+]/g, '')}`}
-              aria-label="Call"
-              title={info.phone || '+91-6300697301'}
+              aria-label="Direct Call"
+              title="Direct Call"
               className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#202020] border border-white/10 text-zinc-300 hover:text-white transition-colors"
             >
               <Phone className="w-4 h-4" />

@@ -137,11 +137,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
             {/* Quick Call Button */}
             <a
               href={`tel:${(info.phone || '+91-6300697301').replace(/[^0-9+]/g, '')}`}
-              className="p-2 rounded-xl bg-[#141414] border border-white/10 text-zinc-300 hover:text-white hover:border-white/20 transition-all text-xs font-mono flex items-center gap-1.5"
-              title={`Direct Call: ${info.phone || '+91-6300697301'}`}
+              aria-label="Direct Call"
+              title="Direct Call"
+              className="p-2 rounded-xl bg-[#141414] border border-white/10 text-zinc-300 hover:text-white hover:border-white/20 transition-all flex items-center justify-center"
             >
               <Phone className="w-3.5 h-3.5" style={{ color: config.hex }} />
-              <span className="hidden xl:inline">{info.phone || '+91-6300697301'}</span>
             </a>
 
             {/* GitHub Profile */}
@@ -318,7 +318,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenContact }) => {
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#171717] border border-white/10 text-zinc-200 text-xs font-mono"
               >
                 <Phone className="w-3.5 h-3.5" style={{ color: config.hex }} />
-                <span>Call {info.phone}</span>
+                <span>Direct Call</span>
               </a>
               <a
                 href={info.github || "https://github.com/saidurganivas02?tab=repositories"}
